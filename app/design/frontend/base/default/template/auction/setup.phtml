@@ -1,0 +1,50 @@
+<script>
+var auctionMsg = {
+    msgBeforestart : "<?php echo $this->__('Auction Start In'); ?>",
+    msgBeforeDone  : "<?php echo $this->__('Auction Ends IN'); ?>",
+    msgAfter       : "<?php echo $this->__('Auction Finished!'); ?>"
+};
+var customerInfo = {
+    bid             : '<?php echo $this->__('Bid'); ?>',
+    bidUrl          : '<?php echo $this->getBidUrl() ?>',
+    isLogin         : <?php echo (Mage::getSingleton('customer/session')->isLoggedIn())?1:0 ?>,
+    loginLabel      : '<?php echo $this->__('Login') ?>',
+    loginUrl        : "<?php echo $this->getLoginUrl() ?>",
+    requiteBiderName: <?php echo ($this->requiredBidderName())?1:0 ?>,
+    createBiderName : '<?php echo $this->__('Create Bidder Name') ?>',
+    createBiderUrl  : '<?php echo $this->getCustomerBidUrl() ?>'
+};
+var autionUrl = {
+    updateTimeDiffirentUrl : '<?php echo $this->getUrl('auction/index/getNowTimeServer'); ?>',
+    auctionUpdateUrl       : '<?php echo $this->getUrl('auction/index/listAuctionInfo'); ?>',
+    bid                    : '<?php echo $this->getUrl('auction/index/bid'); ?>',
+    auctionUpdateInfoUrl   : '<?php echo $this->getUrl('auction/index/updateInfo'); ?>'
+};
+// var autionUrl = {
+//     updateTimeDiffirentUrl : '<?php echo $this->getUrl('auction/index/getNowTimeServer',array('_secure'=>true)); ?>',
+//     auctionUpdateUrl       : '<?php echo $this->getUrl('auction/index/listAuctionInfo',array('_secure'=>true)); ?>',
+//     bid                    : '<?php echo $this->getUrl('auction/index/bid',array('_secure'=>true)); ?>',
+//     auctionUpdateInfoUrl   : '<?php echo $this->getUrl('auction/index/updateInfo',array('_secure'=>true)); ?>'
+// };
+var autionImgSrc = {
+    imageLogin              : '<?php echo Mage::getBaseUrl('media') . 'auction/login/' . Mage::getStoreConfig('auction/auction_image/image_login', $storeId) ?>',
+    imageBid                : '<?php echo Mage::getBaseUrl('media') . 'auction/bid/' . Mage::getStoreConfig('auction/auction_image/image_login', $storeId) ?>',
+    imageCreateBidderName   : '<?php echo Mage::getBaseUrl('media') . 'auction/createbidname/' . Mage::getStoreConfig('auction/auction_image/image_login', $storeId) ?>',
+    labelLogin              : '<?php echo $this->__('Login') ?>',
+    labelBid                : '<?php echo $this->__('Bid') ?>',
+    labelCreateBidderName   : '<?php echo $this->__('Create Bidder Name') ?>'
+};
+var countdown = null;
+var auctionManager = null;
+var auctionInfoUpdateManager = null;
+document.observe('dom:loaded',function(){
+	*/
+    countdown = new AuctionCounterDown;
+    auctionManager = new AuctionsManager;
+    auctionInfoUpdateManager = new AuctionInfoUpdateManager;
+	$$('.acutionbid').each(function(el){
+		if(el.next('.action'))
+			el.next('.action').hide();
+	});
+});
+</script>

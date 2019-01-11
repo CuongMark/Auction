@@ -1,0 +1,204 @@
+<?php 
+$storeId = Mage::app()->getStore()->getId();
+if(Mage::getSingleton('customer/session')->isLoggedIn()) {
+     $customerData = Mage::getSingleton('customer/session')->getCustomer();
+ }
+$_helper = Mage::helper('auction');
+    if ($_helper->getBidderStatus()):
+    $auction = $this->getAuction();
+        if ($auction) :
+            $lastBid = $this->getLastbid();
+            $currentPrice = $lastBid->getPrice() ? $lastBid->getPrice() : $auction->getInitPrice();
+            $min_next_price = $auction->getMinNextPrice();
+            $max_next_price = $auction->getMaxNextPrice();
+            ?>
+            <div id="auction" auctionId="<?php echo $auction->getId() ?>" autionProductId="<?php echo $auction->getProductId() ?>">
+				<button type="button" title="Add to Cart" class="button acutionbid" onclick="window.location.href='<?php echo $this->getUrl('auction') ?>'"><span><span><?php echo $this->__('Back') ?></span></span></button>
+				<?php if ($auction->getStatus() == 4) : ?>
+                <ul>					<?php if (Mage::getStoreConfig('auction/general/header')!=''): ?>						<li><span style="color:red;"><?php echo Mage::getStoreConfig('auction/general/header'); ?></span></li>					<?php endif; ?>
+                    <li><div class="title"><?php echo $this->__('Auction ends in:'); ?></div><div class="auction_info countdown" endTime="<?php echo $auction->getEndTime() . ' ' . $auction->getEndDate(); ?>"></div></li>
+                    <li><div class="title"><?php echo $this->__('Bids:'); ?></div><div class="auction_info bids"><a href="<?php echo $this->getHistoryUrl() ?>"><?php echo $this->getTotalBid() ?></a></div></li>
+                    <li><div class="title"><?php echo $this->__('Current Price:'); ?></div><div class="auction_info current_price"><?php echo Mage::helper('core')->currency($currentPrice) ?></div></li>
+                    <li><div class="title"><?php echo $this->__('Bidder:'); ?></div><div class="auction_info bidder"><?php echo $lastBid ? $lastBid->getBidderName() : $this->__('None') ?></div></li>
+                    <li><div class="title"><?php echo $this->__('Start Price:'); ?></div><div class="auction_info start_price"><?php echo Mage::helper('core')->currency($auction->getInitPrice()) ?></div></li>
+                    <li><div class="title"><?php echo $this->__('Start Time:'); ?></div><div class="auction_info start_time"><?php echo $this->formatDate(new Zend_Date($auction->getStartDate().' '.$auction->getStartTime(),null, 'en_GB'),'medium',true) ?></div></li>
+                    <li><div class="title"><?php echo $this->__('Close Time:'); ?></div><div class="auction_info end_time"><?php echo $this->formatDate(new Zend_Date($auction->getEndDate().' '.$auction->getEndTime(),null, 'en_GB'),'medium',true) ?></div></li>
+                    <li>
+                        <div id="auction_watcher">
+                            <?php if ($this->isWatcher()): ?>
+                                <a href="<?php echo $this->getUnWatchUrl() ?>"><span><?php echo $this->__('Stop Watching') ?></span></a>
+                            <?php else: ?>
+                                <a href="<?php echo $this->getWatchUrl() ?>"><span><?php echo $this->__('Watch this') ?></span></a>
+                            <?php endif; ?> 
+                        </div>
+                    </li>
+                </ul>
+                <div class="bid-box">
+                        <div class="row">
+                            <?php echo $this->__('Your bid&nbsp;') ?>
+                            <span class="price_condition">
+                                <?php if ($max_next_price): ?>
+                                    <?php echo $this->__(' (Enter an amount from %s to %s.)',Mage::helper('core')->currency($min_next_price),Mage::helper('core')->currency($max_next_price)); ?>
+                                <?php else : ?>
+                                    <?php echo $this->__(' (Enter more than %s.)',Mage::helper('core')->currency($min_next_price)) ?>
+                                <?php endif; ?>
+                            </span>
+                        </div>
+                        <div class="row" style="height: 35px;">
+                            <input type="text" class="input-text" name="price" id="bid_price"/>
+                            <?php $imgSrc = $_helper->getBidButtonImage() ?>
+                            <?php if ($imgSrc): ?>
+                                <button class="image-button" id="auction_bid_button" type="button">
+                                    <img src="<?php echo $imgSrc; ?>" alt="<?php echo $this->__('Bid'); ?>"/>
+                                </button>
+                            <?php else: ?>
+                                <button class="button" id="auction_bid_button" type="button">
+                                    <span><span><?php echo $this->__('Bid') ?></span></span>
+                                </button>
+                            <?php endif; ?>
+							<button class="button" id="auction_bid_button" type="button" onclick="window.location.href='<?php echo $this->getProduct()->getProductUrl() ?>'">
+								<span><span><?php echo $this->__('Refresh') ?></span></span>
+							</button>
+                            <span id="auction_bid_waitting" style="display:none;" class="opc-please-wait">
+                                <img src="<?php echo $this->getSkinUrl('images/opc-ajax-loader.gif') ?>" class="v-middle" alt="" />
+                            </span>	
+                        </div>
+                        <?php if (Mage::getStoreConfig('auction/general/enable_autobid') == 1): ?>
+                            <div class="row type-option">			
+                                <input type="radio" name="bid_type" value="1" checked="checked" id="auction_standard_bid"/>
+                                <label for="auction_standard_bid"><?php echo $this->__('Standard bid') ?></label>
+                                <input type="radio" name="bid_type" value="0" id="auction_auto_bid"/>
+                                <label for="auction_auto_bid"><?php echo $this->__('Autobid') ?></label>						
+                            </div>
+                        <?php else: ?>
+                            <input hidden="hidden" type="radio" name="bid_type" value="1" checked="checked" id="auction_standard_bid"/>
+                        <?php endif; ?>
+                        <div id="msg_error" class="auction-error"></div>
+                        <div id="msg_success" class="auction-success"></div>				
+                    </div>
+					
+					<?php else : ?>
+						<h4><?php echo $this->__('Completed Auction') ?></h4>
+						<?php if ($this->isWinner()){ ?>
+							<div class="won-message">
+								<h3><?php echo $this->__('Congratulations!') ?></h3>
+								<?php echo $this->getWonMessage() ?>
+								<br/>
+								<button type="button" class="button" onclick="proceedAuctionCheckout();">
+									<span><?php echo $this->__('Pay Now') ?></span>
+								</button>
+							</div>
+							<div class="divider"></div>
+							<script text="javascript">
+								function proceedAuctionCheckout() {
+									location.href = "<?php echo $this->getCheckoutUrl() ?>";
+								}
+							</script>
+						<?php }else if(!Mage::getModel('auction/auction')->getCollection()->addFieldToFilter('status',5)->addFieldToFilter('productauction_id', $auction->getId())->getSize()){?>
+							<div class="won-message" style="color:red;">
+								<?php echo $this->__('MINIMUM RESERVE NOT MET, NO WINNER FOR THIS AUCTION.'); ?>
+							</div>
+						<?php } ?>
+						<div class="auction-content">		
+							<div id="auction_info_<?php echo $auction->getId() ?>">
+								<ul>
+									<li><div class="title"><?php echo $this->__('Bids:'); ?></div><div class="auction_info bids"><a href="<?php echo $this->getHistoryUrl() ?>"><?php echo $this->getTotalBid() ?></a></div></li>
+									<li><div class="title"><?php echo $this->__('Win Price:'); ?></div><div class="auction_info current_price"><?php echo Mage::helper('core')->currency($currentPrice) ?></div></li>
+									<li><div class="title"><?php echo $this->__('Winner:'); ?></div><div class="auction_info bidder"><?php echo $lastBid ? $lastBid->getBidderName() : $this->__('None') ?></div></li>
+									<li><div class="title"><?php echo $this->__('Close Time:'); ?></div><div class="auction_info end_time"><?php echo $this->formatDate(new Zend_Date($auction->getEndDate().' '.$auction->getEndTime(),null, 'en_GB'),'medium',true) ?></div></li>
+								</ul>
+							</div>	
+						</div>
+					<?php endif; ?>	
+            </div>
+    <?php endif;
+endif; ?>
+<script>
+	var isProductPage = true;
+	if($('bid_price'))
+		$('bid_price').observe('keyup', function(event) {
+			if (event.keyCode == 13) {
+				$('auction_bid_button').click();
+			}
+		});
+</script>
+<?php //if($_SERVER['REMOTE_ADDR']!='117.6.99.18') return; ?>
+<div id="auction_game" style="display:none">
+	<div class="left-col">
+		<div class="select-game">
+			<select class="select-games">
+				<option value=""><?php echo $this->__('Select a game') ?></option>
+				<?php echo $this->getLayout()->createBlock('cms/block')->setBlockId('game-list')->toHtml(); ?> 
+			</select>
+		</div>
+		<div class="game-box"></div>
+	</div>
+	<div class="right-col"></div>
+	<div class="hide-button">X</div>
+</div>
+<div id="auction_backgound" style="position: fixed; top: 0px; left: 0px; z-index: 99; display:none; height: 100%;width: 100%; opacity: 0.5; background-color: rgb(85, 136, 153);"></div>
+<style>
+#auction_game{
+	width:100%;
+	height:623px;
+	max-height:800px;
+	position: absolute;
+	z-index:100;
+	background-color:white;
+}
+.left-col,.right-col{
+	float:left;
+}
+.left-col{
+	width:70%;
+}
+.right-col{
+	width:30%;
+	min-width:331px;
+}
+.right-col #auction{
+	margin:0 !important;
+}
+.game-box-iframe{
+	frameborder:0;
+	width:100%;
+	height:100%;
+	allowtransparency:true;
+	min-height:600px;
+}
+.hide-button{
+	position: absolute;
+    right: 6px;
+    font-weight: 900;
+	cursor: pointer;
+}
+</style>
+<script>
+	function setUpGamePopup(){
+			$$('#auction_backgound, #auction_game .hide-button').each(function(el){
+				el.observe('click',function(){
+					hideGamePopup();
+				});
+			});
+			$$('.select-games').first().observe('change',function(){
+				changeGame($$('.select-games').first().value);
+			});
+	}
+	function changeGame(url){
+		if($$('#auction_game .game-box').length)
+			$$('#auction_game .game-box').first().update('<iframe src="'+url+'" class="game-box-iframe"></iframe>');
+	}
+	function showGamePopup(){
+		if($('auction_backgound'))
+			$$('body').first().insert({top:$('auction_backgound').show()});
+		if($('auction_game')){
+			$$('.main').first().insert({top:$('auction_game').show()});
+			$$('#auction_game .right-col').first().update($('auction'));
+		}
+	}
+	function hideGamePopup(){
+		$$('#auction_backgound, #auction_game').invoke('hide');
+		$$('.add-to-cart-wrapper').first().insert({top:$('auction')});
+	}
+	setUpGamePopup();
+</script>

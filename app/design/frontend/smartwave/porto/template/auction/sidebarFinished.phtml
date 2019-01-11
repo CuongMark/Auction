@@ -1,0 +1,19 @@
+<?php
+    $getListFinishedAuction = $this->getListFinishedAuction();
+ ?>
+ <?php if($getListFinishedAuction->getSize()): ?>
+<div class="block block-layered-nav finished-auction">
+    <div class="block-title">
+        <strong><span><?= $this->__('Finished Auction') ?></span></strong>
+    </div>
+    <ul>
+        <?php foreach ($getListFinishedAuction as $item): ?>
+        <li>
+            <span><a href="<?= $this->getUrl('catalog/product/view', array('id'=> $item->getProductId())) ?>"><?= $item->getProductName() ?></a> </span>
+            <br/>
+            <span><?= $item->getBidderName() ?> - <?= Mage::helper('core')->currency($item->getBidPrice()) ?></span>
+        </li>
+        <?php endforeach; ?>
+    </ul>
+</div>
+<?php endif; ?>

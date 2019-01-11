@@ -1,0 +1,30 @@
+<?php echo $this->getChildHtml('child') ?>
+<?php 
+    if (!Mage::registry('auction_products')) {
+        $store_id = Mage::app()->getStore()->getId();
+		$auction = Mage::helper('auction')->getProductAuctionEndTimes($store_id, true);
+		if($auction==null)
+			$auction = 1;
+		Mage::register('auction_products',$auction);
+    }
+    $auctionProducts = Mage::registry('auction_products');
+    $productId = $this->getProduct()->getId();
+?>
+<?php if($auctionProducts[$productId]): ?>
+	<?php if($auctionProducts[$productId]['status']==5): ?>
+		<div class="auction_box1">
+			<div class="auction_label"><?php echo $this->__('Auction finished!') ?></div>
+			<div class="price"><?php echo $auctionProducts[$productId]['price'] ?></div>
+			<div class="bidder"><?php echo $auctionProducts[$productId]['bidder'] ? $auctionProducts[$productId]['bidder'] : '' ?></div>
+		</div>
+	<?php else: ?>
+	<?php $end_time = ($auctionProducts[$productId]['status']==3)?$auctionProducts[$productId]['start_time']:$auctionProducts[$productId]['end_time']; ?>
+		<div class="auction_box" auctionId="<?php echo $productId ?>" updateTime="<?php echo $auctionProducts[$productId]['update']; ?>">
+			<div class="auction_label"></div>
+			<div class="countdown" endTime="<?php echo $end_time; ?>"></div>
+			<div class="price"></div>
+			<div class="bidder"></div>
+		</div>
+		<button type="button" title="Add to Cart" class="button acutionbid" onclick="window.location.href='<?php echo $this->getProduct()->getProductUrl() ?>'"><span><span><?php echo $this->__('Bid') ?></span></span></button>
+	<?php endif; ?>
+<?php endif; ?>
